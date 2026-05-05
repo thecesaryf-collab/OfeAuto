@@ -1,0 +1,89 @@
+/* Reseteo básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f4f6f8;
+    color: #333;
+}
+
+.cabecera {
+    background-color: #e3001b; /* Un rojo estilo supermercado */
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* El sistema de cuadrícula responsivo */
+.grid-productos {
+    display: grid;
+    /* Se adapta solo: columnas de mínimo 280px */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 0 20px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Estilo de la tarjeta de producto */
+.tarjeta {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #eaeaea;
+}
+
+.tarjeta:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+.tarjeta-marca {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.tarjeta-titulo {
+    font-size: 1.1rem;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.tarjeta-precio {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #e3001b;
+    margin-bottom: 15px;
+}
+
+.tarjeta-footer {
+    border-top: 1px dashed #ccc;
+    padding-top: 15px;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.tarjeta-footer p {
+    margin-bottom: 5px;
+}
+
+.tarjeta-vigencia {
+    font-size: 0.75rem;
+    color: #e67e22;
+    font-weight: bold;
+}
