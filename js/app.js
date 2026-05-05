@@ -7,6 +7,7 @@ Papa.parse(rutaCSV, {
     delimiter: ";",
     header: true,
     skipEmptyLines: true,
+    encoding: "UTF-8"
     complete: function(resultados) {
         // ESTO ES MAGIA: Lo imprime en la consola para que podamos investigar
         console.log("¡CSV leído! Mira los datos aquí:", resultados.data);
