@@ -19,36 +19,44 @@ Papa.parse(rutaCSV, {
 });
 
 function pintarProductos(productos) {
-    contenedor.innerHTML = ''; // Limpiamos el mensaje de "Cargando..."
+    contenedor.innerHTML = ''; // Limpiamos el mensaje
 
     if(productos.length === 0) {
-        contenedor.innerHTML = '<p>El archivo CSV parece estar vacío o la ruta está mal.</p>';
+        contenedor.innerHTML = '<p>No hay productos para mostrar.</p>';
         return;
     }
 
     productos.forEach(producto => {
-        // 1. Truco anti-errores de Excel: Buscamos la descripción con o sin tilde rota
-        const descripcion = producto["Descripción"] || producto["Descripcin"] || producto["Descripcion"];
+        // 1. Sacamos un array con los nombres EXACTOS de las columnas que detecta tu CSV
+        const columnas = Object.keys(producto);
         
-        // Si de verdad no hay descripción, nos la saltamos
-        if (!descripcion || descripcion.trim() === '') return;
+        // 2. Buscamos las columnas por "trozos" de palabra para no fallar nunca
+        const colDesc = columnas.find(c => c.toLowerCase().includes('escrip'));
+        const colMarca = columnas.find(c => c.toLowerCase().includes('marca'));
+        const colPrecio = columnas.find(c => c.toLowerCase().includes('precio'));
+        const colAcumulas = columnas.find(c => c.toLowerCase().includes('acumula'));
+        const colArticulo = columnas.find(c => c.toLowerCase().includes('art'));
+        const colVigencia = columnas.find(c => c.toLowerCase().includes('vigencia'));
 
-        // 2. Recogemos el resto de datos
-        const marca = producto["Marca"] && producto["Marca"].trim() !== '' ? producto["Marca"] : "Sin Marca";
+        // Extraemos la descripción usando la columna real que hemos encontrado
+        const descripcion = colDesc ? producto[colDesc] : null;
         
-        // 3. Truco por si el precio se ha desplazado a la columna "Acumulas"
-        let precio = producto["Precio"];
-        if (!precio || precio.trim() === '') {
-            precio = producto["Acumulas"]; // Si Precio está vacío, miramos en Acumulas
-        }
-        if (!precio || precio.trim() === '') {
-            precio = "Consultar"; // Si ambos están vacíos
+        // Si la fila viene totalmente vacía o sin descripción, la saltamos
+        if (!descripcion || String(descripcion).trim() === '') return;
+
+        // Extraemos el resto de datos
+        const marca = (colMarca && producto[colMarca].trim() !== '') ? producto[colMarca] : "Sin Marca";
+        
+        let precio = (colPrecio && producto[colPrecio].trim() !== '') ? producto[colPrecio] : null;
+        if (!precio) {
+            // Si el precio principal está vacío, probamos en la columna de al lado por si se movió
+            precio = (colAcumulas && producto[colAcumulas].trim() !== '') ? producto[colAcumulas] : "Consultar precio";
         }
 
-        const articuloId = producto["Artículo"] || "N/A";
-        const vigencia = producto["Fecha de vigencia"] || "Consultar fechas";
+        const articuloId = colArticulo ? producto[colArticulo] : "N/A";
+        const vigencia = colVigencia ? producto[colVigencia] : "Hasta fin de existencias";
 
-        // 4. Creamos la tarjeta
+        // 3. Pintamos la tarjeta
         const tarjeta = document.createElement('div');
         tarjeta.classList.add('tarjeta');
         tarjeta.innerHTML = `
