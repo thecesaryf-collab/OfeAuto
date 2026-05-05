@@ -1,45 +1,56 @@
-// La ruta asume que app.js se ejecuta desde index.html en la raíz
-const rutaCSV = './csv/MasyMas_OFE_Auto(Listado_prod).csv';
+// OJO: Asegúrate de que aquí las mayúsculas coincidan EXACTAMENTE con tu GitHub
+const rutaCSV = './csv/MasyMas_OFE_Auto(Listado_prod).csv'; 
 const contenedor = document.getElementById('contenedor-productos');
 
-// Usamos PapaParse para leer el archivo local (o de servidor)
 Papa.parse(rutaCSV, {
-    download: true,       // Va a buscar el archivo a la ruta indicada
-    delimiter: ";",       // Sabemos que tu separador es ;
-    header: true,         // Usa la primera fila (Sección, Marca, etc) como claves
-    skipEmptyLines: true, // Ignora saltos de línea finales
+    download: true,
+    delimiter: ";",
+    header: true,
+    skipEmptyLines: true,
     complete: function(resultados) {
-        // resultados.data es un array con todos tus productos
+        // ESTO ES MAGIA: Lo imprime en la consola para que podamos investigar
+        console.log("¡CSV leído! Mira los datos aquí:", resultados.data);
         pintarProductos(resultados.data);
     },
     error: function(error) {
-        contenedor.innerHTML = `<p style="color:red; text-align:center; width:100%;">
-            Error al cargar el CSV. Recuerda abrir el archivo con Live Server o un servidor local.
-        </p>`;
-        console.error(error);
+        console.error("Error crítico al leer el CSV:", error);
+        contenedor.innerHTML = '<p style="color:red;">Error al cargar el archivo CSV. Revisa la ruta.</p>';
     }
 });
 
 function pintarProductos(productos) {
-    // Vaciamos el texto de "Cargando..."
-    contenedor.innerHTML = '';
+    contenedor.innerHTML = ''; // Limpiamos el mensaje de "Cargando..."
+
+    if(productos.length === 0) {
+        contenedor.innerHTML = '<p>El archivo CSV parece estar vacío o la ruta está mal.</p>';
+        return;
+    }
 
     productos.forEach(producto => {
-        // Validamos que haya descripción (a veces hay líneas residuales en el CSV sin nombre)
-        if (!producto["Descripción"] || producto["Descripción"].trim() === '') return;
+        // 1. Truco anti-errores de Excel: Buscamos la descripción con o sin tilde rota
+        const descripcion = producto["Descripción"] || producto["Descripcin"] || producto["Descripcion"];
+        
+        // Si de verdad no hay descripción, nos la saltamos
+        if (!descripcion || descripcion.trim() === '') return;
 
-        // Limpiamos un poco los datos en caso de que vengan vacíos en el Excel
-        const marca = producto["Marca"] ? producto["Marca"] : "Sin Marca";
-        const descripcion = producto["Descripción"];
-        const precio = producto["Precio"] ? producto["Precio"] : "Consultar precio";
+        // 2. Recogemos el resto de datos
+        const marca = producto["Marca"] && producto["Marca"].trim() !== '' ? producto["Marca"] : "Sin Marca";
+        
+        // 3. Truco por si el precio se ha desplazado a la columna "Acumulas"
+        let precio = producto["Precio"];
+        if (!precio || precio.trim() === '') {
+            precio = producto["Acumulas"]; // Si Precio está vacío, miramos en Acumulas
+        }
+        if (!precio || precio.trim() === '') {
+            precio = "Consultar"; // Si ambos están vacíos
+        }
+
         const articuloId = producto["Artículo"] || "N/A";
-        const vigencia = producto["Fecha de vigencia"] || "Hasta fin de existencias";
+        const vigencia = producto["Fecha de vigencia"] || "Consultar fechas";
 
-        // Creamos el div de la tarjeta
+        // 4. Creamos la tarjeta
         const tarjeta = document.createElement('div');
         tarjeta.classList.add('tarjeta');
-
-        // Metemos el contenido HTML a la tarjeta con interpolación de variables ${...}
         tarjeta.innerHTML = `
             <div>
                 <div class="tarjeta-marca">${marca}</div>
@@ -54,8 +65,6 @@ function pintarProductos(productos) {
                 </div>
             </div>
         `;
-
-        // Agregamos la tarjeta terminada al contenedor del HTML
         contenedor.appendChild(tarjeta);
     });
 }
