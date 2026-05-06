@@ -56,7 +56,8 @@ function mostrarOferta(datos) {
     setTimeout(() => {
         // Arrancamos el fondo (si es la primera vez lo arranca, si no, ya está rodando en bucle)
         bgMosaico.style.opacity = 1;
-        if(bgMosaico.paused) bgMosaico.play();
+        bgMosaico.currentTime = 0; 
+        bgMosaico.play();
 
         // Panel Cristal
         document.getElementById('glass-panel').classList.add('show');
