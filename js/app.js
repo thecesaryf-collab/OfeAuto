@@ -7,6 +7,11 @@ const config = {
 let listaOfertas = [];
 let indiceActual = 0;
 
+// Referencias a los vídeos fijos en RAM
+const vidEntrada = document.getElementById('video-entrada');
+const vidSalida = document.getElementById('video-salida');
+const bgMosaico = document.getElementById('bg-mosaico');
+
 // Cargar Datos
 Papa.parse(config.rutaCSV, {
     download: true,
@@ -25,30 +30,38 @@ async function iniciarCiclo() {
 }
 
 function mostrarOferta(datos) {
-    const videoTrans = document.getElementById('video-transicion');
-    const bgMosaico = document.getElementById('bg-mosaico');
+    // Calculamos cuál será la siguiente oferta
+    const siguienteIndice = (indiceActual + 1) % listaOfertas.length;
 
     // --- 00:00 a 00:01 - ENTRADA ---
-    // Ponemos el video de entrada y le decimos que se vaya borrando (wipe-out)
-    videoTrans.src = `${config.folderAssets}cortinilla_entrada.mp4`;
-    videoTrans.classList.remove('wipe-in');
-    videoTrans.classList.add('wipe-out');
-    videoTrans.play();
+    // Ocultamos el video de salida anterior para limpiar pantalla
+    vidSalida.style.opacity = 0; 
+    vidSalida.classList.remove('wipe-in');
 
-    // Preparar contenido oculto mientras el video aún tapa la pantalla
+    // Preparamos y lanzamos el video de entrada (ya está en RAM)
+    vidEntrada.style.opacity = 1;
+    vidEntrada.currentTime = 0; // Lo rebobinamos
+    
+    // TRUCO VITAL: Forzar al navegador a reiniciar la animación CSS (Reflow)
+    vidEntrada.classList.remove('wipe-out');
+    void vidEntrada.offsetWidth; 
+    vidEntrada.classList.add('wipe-out');
+    
+    vidEntrada.play();
+
+    // Inyectamos los datos en el HTML mientras el video tapa la pantalla
     prepararContenido(datos);
 
-    // --- 00:01 - MOSTRAR ELEMENTOS (El video de entrada acaba de desaparecer) ---
+    // --- 00:01 - MOSTRAR ELEMENTOS ---
     setTimeout(() => {
-        // Arrancamos el mosaico del fondo
-        bgMosaico.src = `${config.folderAssets}cortinilla_fondo_mosaico.mp4`;
+        // Arrancamos el fondo (si es la primera vez lo arranca, si no, ya está rodando en bucle)
         bgMosaico.style.opacity = 1;
-        bgMosaico.play();
+        if(bgMosaico.paused) bgMosaico.play();
 
-        // Subimos el Panel de Cristal
+        // Panel Cristal
         document.getElementById('glass-panel').classList.add('show');
         
-        // Escribimos la Fecha
+        // Escribir Fecha
         escribirTexto(document.getElementById('fecha-validez'), datos["Fecha de vigencia"] || "");
     }, 1000);
 
@@ -66,38 +79,51 @@ function mostrarOferta(datos) {
         const decimal = document.getElementById('precio-decimal');
         escribirTexto(entero, entero.innerText, true);
         escribirTexto(decimal, decimal.innerText, true);
+
+        // OPTIMIZACIÓN DE MEMORIA: Mientras el usuario mira el precio, 
+        // descargamos en modo "fantasma" la foto de la SIGUIENTE oferta.
+        preCargarImagen(listaOfertas[siguienteIndice]);
     }, 1800);
 
     // --- 00:09 a 00:10 - SALIDA ---
     setTimeout(() => {
-        // Ponemos el video de salida y le decimos que vaya tapando la pantalla (wipe-in)
-        videoTrans.src = `${config.folderAssets}cortinilla_salida.mp4`;
-        videoTrans.classList.remove('wipe-out');
-        videoTrans.classList.add('wipe-in');
-        videoTrans.play();
+        vidSalida.style.opacity = 1;
+        vidSalida.currentTime = 0; // Lo rebobinamos
+
+        // TRUCO VITAL: Reflow de animación
+        vidSalida.classList.remove('wipe-in');
+        void vidSalida.offsetWidth;
+        vidSalida.classList.add('wipe-in');
+        
+        vidSalida.play();
     }, 9000);
 
     // --- 00:10 - SIGUIENTE ---
     setTimeout(() => {
-        indiceActual = (indiceActual + 1) % listaOfertas.length;
+        indiceActual = siguienteIndice;
         resetearAnimaciones();
-        
-        // Al volver a llamar a mostrarOferta, el nuevo video de entrada 
-        // reemplazará al de salida, asegurando que siempre hay video en pantalla en la transición.
         mostrarOferta(listaOfertas[indiceActual]);
     }, 10000);
 }
+
+// FUNCIONES AUXILIARES
+
+// Descarga la imagen en caché sin mostrarla
+function preCargarImagen(datosSiguiente) {
+    if (datosSiguiente && datosSiguiente.Artículo) {
+        const imgPreload = new Image();
+        imgPreload.src = `${config.folderAssets}${datosSiguiente.Artículo}.png`;
+    }
+}
+
 function prepararContenido(d) {
-    // 1. Imagen Producto
     document.getElementById('foto-producto').src = `${config.folderAssets}${d.Artículo}.png`;
 
-    // 2. Precio
     let precioFull = d.Precio || d.Acumulas || "0,00";
     let partes = precioFull.replace('€', '').trim().split(',');
     document.getElementById('precio-entero').innerText = partes[0];
     document.getElementById('precio-decimal').innerText = partes[1] || "00";
 
-    // 3. Sellos
     const sellosCont = document.getElementById('contenedor-sellos');
     sellosCont.innerHTML = '';
     if (d.Sello) {
@@ -108,7 +134,6 @@ function prepararContenido(d) {
         });
     }
 
-    // 4. Lógica de Descripción / Marca
     const descCont = document.getElementById('descripcion-prod');
     let titulo = "", subtitulo = "";
 
@@ -116,7 +141,6 @@ function prepararContenido(d) {
         titulo = d.Marca.toUpperCase();
         subtitulo = d.Descripción.replace(new RegExp(d.Marca, 'gi'), '').trim();
     } else {
-        // Si no hay marca, buscamos la parte en mayúsculas de la descripción
         let palabras = d.Descripción.split(' ');
         titulo = palabras.filter(p => p === p.toUpperCase() && p.length > 2).join(' ');
         subtitulo = d.Descripción.replace(titulo, '').trim();
@@ -126,7 +150,6 @@ function prepararContenido(d) {
 }
 
 function formatearSubtitulo(txt) {
-    // Máximo 20 caracteres por línea sin cortar palabras
     let palabras = txt.split(' ');
     let lineas = [], lineaActual = "";
     palabras.forEach(p => {
