@@ -30,13 +30,25 @@ body, html {
 }
 
 /* ORDEN DE CAPAS (Z-INDEX) */
-.layer-1-7 { z-index: 100; position: absolute; width: 100%; height: 100%; object-fit: cover; } /* Cortinillas */
-.fecha { z-index: 90; position: absolute; top: 5%; color: white; font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+.layer-1-7 { 
+    z-index: 100; 
+    position: absolute; 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    opacity: 0; /* Ocultos por defecto */
+}.fecha { z-index: 90; position: absolute; top: 5%; color: white; font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
 .producto { z-index: 80; position: absolute; transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; transform: translateY(100px); }
 .precio-container { z-index: 70; position: absolute; transition: all 0.8s ease; }
 .layer-6 { z-index: 50; position: absolute; } /* Cristal */
-.layer-2 { z-index: 10; position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s; } /* Fondo */
-
+.layer-2 { 
+    z-index: 10; 
+    position: absolute; 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    opacity: 0; /* Oculto por defecto */
+}
 /* PANEL CRISTAL (LIQUID GLASS) */
 .layer-6 {
     background: rgba(255, 255, 255, 0.15);
