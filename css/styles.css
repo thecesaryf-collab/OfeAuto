@@ -1,89 +1,98 @@
-/* Reseteo básico */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+:root {
+    --color-principal: #00634C;
+    --color-precio: #B0CA0A;
+    --color-caja: #24322F;
 }
 
-body {
-    background-color: #f4f6f8;
-    color: #333;
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+
+#master-container {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+    background: #000;
 }
 
-.cabecera {
-    background-color: #e3001b; /* Un rojo estilo supermercado */
-    color: white;
-    text-align: center;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+/* Z-INDEX LAYERING */
+.layer-1-7 { z-index: 100; position: absolute; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.content-layer { z-index: 50; position: absolute; width: 100%; height: 100%; display: flex; }
+.layer-6 { z-index: 40; position: absolute; }
+.layer-2 { z-index: 10; position: absolute; width: 100%; height: 100%; object-fit: cover; }
+
+/* PANEL CRISTAL (LIQUID GLASS) */
+.layer-6 {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 80%; height: 70%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, 150%); /* Inicio fuera abajo */
+    transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* El sistema de cuadrícula responsivo */
-.grid-productos {
-    display: grid;
-    /* Se adapta solo: columnas de mínimo 280px */
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-    padding: 0 20px 40px;
-    max-width: 1200px;
-    margin: 0 auto;
+.layer-6.show { transform: translate(-50%, -50%); }
+
+/* PRECIO Y CAJA */
+.caja-p {
+    background-color: var(--color-caja);
+    color: var(--color-precio);
+    padding: 10px 30px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: baseline;
+    transform: rotateY(90deg) scale(0);
+    transition: transform 0.8s ease;
 }
 
-/* Estilo de la tarjeta de producto */
-.tarjeta {
-    background: white;
+.caja-p.show { transform: rotateY(0deg) scale(1); }
+
+#precio-entero { font-size: 8rem; font-weight: 900; }
+#precio-decimal-group { position: relative; top: -2rem; }
+#precio-decimal { font-size: 4rem; font-weight: 700; }
+#precio-simbolo { font-size: 2rem; vertical-align: super; margin-left: 5px; }
+
+.tag-solo {
+    background: var(--color-precio);
+    color: var(--color-caja);
+    font-weight: bold;
+    padding: 5px 15px;
     border-radius: 10px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border: 1px solid #eaeaea;
+    position: absolute;
+    right: -10px; top: -20px;
+    font-size: 1.2rem;
+    z-index: 51;
 }
 
-.tarjeta:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+/* RESPONSIVE LOGIC */
+/* Portrait (Vertical 1080x1920) */
+@media (orientation: portrait) {
+    .content-layer { flex-direction: column; align-items: center; justify-content: space-around; padding: 100px 50px; }
+    .producto { order: 2; width: 100%; text-align: center; }
+    .precio-container { order: 1; width: 100%; text-align: center; }
+    #foto-producto { max-width: 80%; }
 }
 
-.tarjeta-marca {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    color: #888;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
+/* Landscape (Horizontal 1920x1080) */
+@media (orientation: landscape) {
+    .content-layer { flex-direction: row; align-items: center; justify-content: center; padding: 50px; }
+    .producto { flex: 1; text-align: center; }
+    .precio-container { flex: 1; padding-left: 50px; }
+    #foto-producto { max-width: 90%; }
 }
 
-.tarjeta-titulo {
-    font-size: 1.1rem;
-    color: #2c3e50;
-    margin-bottom: 15px;
-    line-height: 1.4;
-}
+/* ANIMACIONES DE TEXTO */
+.char { display: inline-block; opacity: 0; transform: scale(0.5); transition: 0.3s; }
+.char.visible { opacity: 1; transform: scale(1); }
 
-.tarjeta-precio {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #e3001b;
-    margin-bottom: 15px;
+/* MÁSCARA TRANSICIÓN */
+.mask-layer {
+    position: absolute; z-index: 101;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: black;
+    transform: translateX(0);
+    transition: transform 1s ease-in-out;
 }
-
-.tarjeta-footer {
-    border-top: 1px dashed #ccc;
-    padding-top: 15px;
-    font-size: 0.85rem;
-    color: #666;
-}
-
-.tarjeta-footer p {
-    margin-bottom: 5px;
-}
-
-.tarjeta-vigencia {
-    font-size: 0.75rem;
-    color: #e67e22;
-    font-weight: bold;
-}
+.mask-layer.hide { transform: translateX(-100%); }
