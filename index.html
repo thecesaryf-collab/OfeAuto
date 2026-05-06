@@ -3,22 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ofertas MasyMas</title>
+    <title>MasyMas - Sistema de Ofertas</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-    <header class="cabecera">
-        <h1>🛒 Ofertas Destacadas</h1>
-    </header>
+    <div id="master-container">
+        <video id="bg-mosaico" class="layer-2" muted></video>
 
-    <main>
-        <div id="contenedor-productos" class="grid-productos">
-            <p id="mensaje-carga">Cargando productos...</p>
+        <div id="glass-panel" class="layer-6"></div>
+
+        <div id="content-overlay" class="content-layer">
+            <div id="fecha-validez" class="fecha"></div>
+            
+            <div id="bloque-producto" class="producto">
+                <img id="foto-producto" src="" alt="">
+                <div id="contenedor-sellos"></div>
+            </div>
+
+            <div id="bloque-precio" class="precio-container">
+                <div id="descripcion-prod" class="descripcion"></div>
+                <div class="precio-wrapper">
+                    <div id="tag-a-solo" class="tag-solo">A SÓLO</div>
+                    <div id="caja-precio" class="caja-p">
+                        <span id="precio-entero"></span>
+                        <span id="precio-decimal-group">
+                            <span id="precio-coma">,</span>
+                            <span id="precio-decimal"></span>
+                            <span id="precio-simbolo">€</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
-    </main>
 
-    <script src="./js/app.js"></script>
+        <div id="mask-transition" class="mask-layer"></div>
+        <video id="video-transicion" class="layer-1-7" muted></video>
+    </div>
+
+    <script src="js/app.js"></script>
 </body>
 </html>
