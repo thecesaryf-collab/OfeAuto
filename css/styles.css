@@ -1,98 +1,203 @@
 :root {
-    --color-principal: #00634C;
-    --color-precio: #B0CA0A;
-    --color-caja: #24322F;
+    --color-marca: #00634C;       /* Verde oscuro para títulos */
+    --color-precio-texto: #B0CA0A; /* Verde lima para números */
+    --color-caja-precio: #24322F;  /* Fondo oscuro precio */
+    --color-tag: #B0CA0A;          /* Fondo etiqueta A SÓLO */
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial Black', 'Arial', sans-serif;
+}
 
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #000;
+}
+
+/* CONTENEDOR MAESTRO */
 #master-container {
     width: 100vw;
     height: 100vh;
-    overflow: hidden;
     position: relative;
-    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* Z-INDEX LAYERING */
-.layer-1-7 { z-index: 100; position: absolute; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-.content-layer { z-index: 50; position: absolute; width: 100%; height: 100%; display: flex; }
-.layer-6 { z-index: 40; position: absolute; }
-.layer-2 { z-index: 10; position: absolute; width: 100%; height: 100%; object-fit: cover; }
+/* ORDEN DE CAPAS (Z-INDEX) */
+.layer-1-7 { z-index: 100; position: absolute; width: 100%; height: 100%; object-fit: cover; } /* Cortinillas */
+.fecha { z-index: 90; position: absolute; top: 5%; color: white; font-size: 1.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+.producto { z-index: 80; position: absolute; transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; transform: translateY(100px); }
+.precio-container { z-index: 70; position: absolute; transition: all 0.8s ease; }
+.layer-6 { z-index: 50; position: absolute; } /* Cristal */
+.layer-2 { z-index: 10; position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s; } /* Fondo */
 
 /* PANEL CRISTAL (LIQUID GLASS) */
 .layer-6 {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-radius: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    width: 80%; height: 70%;
-    top: 50%; left: 50%;
-    transform: translate(-50%, 150%); /* Inicio fuera abajo */
-    transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    width: 85%;
+    height: 75%;
+    transform: translate(0, 150%); /* Empieza fuera abajo */
+    transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+}
+.layer-6.show { transform: translate(0, 0); }
+
+/* BLOQUE PRECIO Y CAJA */
+.precio-wrapper {
+    position: relative;
+    display: inline-block;
 }
 
-.layer-6.show { transform: translate(-50%, -50%); }
-
-/* PRECIO Y CAJA */
 .caja-p {
-    background-color: var(--color-caja);
-    color: var(--color-precio);
-    padding: 10px 30px;
-    border-radius: 20px;
-    display: inline-flex;
+    background-color: var(--color-caja-precio);
+    color: var(--color-precio-texto);
+    padding: 20px 45px;
+    border-radius: 35px;
+    display: flex;
     align-items: baseline;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     transform: rotateY(90deg) scale(0);
     transition: transform 0.8s ease;
 }
-
 .caja-p.show { transform: rotateY(0deg) scale(1); }
 
-#precio-entero { font-size: 8rem; font-weight: 900; }
-#precio-decimal-group { position: relative; top: -2rem; }
-#precio-decimal { font-size: 4rem; font-weight: 700; }
-#precio-simbolo { font-size: 2rem; vertical-align: super; margin-left: 5px; }
+#precio-entero {
+    font-size: 10rem;
+    line-height: 0.9;
+    font-weight: 900;
+}
 
+#precio-decimal-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 5px;
+}
+
+#precio-decimal {
+    font-size: 4.5rem;
+    line-height: 1;
+    font-weight: 700;
+}
+
+#precio-simbolo {
+    font-size: 2.5rem;
+    margin-top: -5px;
+}
+
+/* ETIQUETA A SÓLO */
 .tag-solo {
-    background: var(--color-precio);
-    color: var(--color-caja);
-    font-weight: bold;
-    padding: 5px 15px;
-    border-radius: 10px;
+    background-color: var(--color-tag);
+    color: var(--color-caja-precio);
+    padding: 8px 20px;
+    border-radius: 15px;
+    font-weight: 900;
+    font-size: 1.5rem;
     position: absolute;
-    right: -10px; top: -20px;
-    font-size: 1.2rem;
-    z-index: 51;
+    top: -20px;
+    right: -15px;
+    z-index: 71;
 }
 
-/* RESPONSIVE LOGIC */
-/* Portrait (Vertical 1080x1920) */
+/* DESCRIPCIÓN Y MARCA */
+.descripcion {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.tit {
+    color: var(--color-marca);
+    font-size: 3rem; /* Título 5px más grande aprox según escala */
+    text-transform: uppercase;
+    font-weight: 900;
+    margin-bottom: 5px;
+}
+
+.sub {
+    color: #000;
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+/* ANIMACIONES DE CARACTERES */
+.char {
+    display: inline-block;
+    opacity: 0;
+    transform: scale(0);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2), opacity 0.3s;
+}
+.char.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* FOTO PRODUCTO Y SELLOS */
+#foto-producto {
+    filter: drop-shadow(0 20px 30px rgba(0,0,0,0.4));
+}
+
+#contenedor-sellos {
+    position: absolute;
+    bottom: -20px;
+    right: 0;
+    display: flex;
+    gap: 10px;
+}
+
+#contenedor-sellos img {
+    height: 80px;
+    width: auto;
+}
+
+/* --- ANIMACIONES DE LAS CORTINILLAS (WIPES) --- */
+
+/* Entrada: El video desaparece de derecha a izquierda revelando el fondo */
+.wipe-out {
+    animation: wipeOutAnim 1s ease-in-out forwards;
+}
+
+@keyframes wipeOutAnim {
+    0%   { clip-path: inset(0 0 0 0); }     /* Totalmente visible */
+    100% { clip-path: inset(0 100% 0 0); }   /* Se oculta hacia la izquierda */
+}
+
+/* Salida: El video aparece de derecha a izquierda tapando la oferta */
+.wipe-in {
+    animation: wipeInAnim 1s ease-in-out forwards;
+}
+
+@keyframes wipeInAnim {
+    0%   { clip-path: inset(0 0 0 100%); }   /* Totalmente oculto (borde derecho) */
+    100% { clip-path: inset(0 0 0 0); }      /* Totalmente visible */
+}
+
+/* --- RESPONSIVE (DIFERENTES RESOLUCIONES) --- */
+
+/* VERTICAL (1080x1920 / 1080x1400) */
 @media (orientation: portrait) {
-    .content-layer { flex-direction: column; align-items: center; justify-content: space-around; padding: 100px 50px; }
-    .producto { order: 2; width: 100%; text-align: center; }
-    .precio-container { order: 1; width: 100%; text-align: center; }
-    #foto-producto { max-width: 80%; }
+    #master-container { flex-direction: column; }
+    .producto { top: 20%; }
+    #foto-producto { width: 85vw; }
+    .precio-container { bottom: 15%; width: 90%; display: flex; flex-direction: column; align-items: center; }
+    .descripcion { text-align: center; }
+    .layer-6 { width: 90%; height: 80%; }
 }
 
-/* Landscape (Horizontal 1920x1080) */
+/* HORIZONTAL (1920x1080 / 1400x1080) */
 @media (orientation: landscape) {
-    .content-layer { flex-direction: row; align-items: center; justify-content: center; padding: 50px; }
-    .producto { flex: 1; text-align: center; }
-    .precio-container { flex: 1; padding-left: 50px; }
-    #foto-producto { max-width: 90%; }
+    #master-container { flex-direction: row; padding: 5%; }
+    .producto { left: 10%; width: 45%; }
+    #foto-producto { height: 65vh; width: auto; }
+    .precio-container { right: 10%; width: 40%; }
+    .layer-6 { width: 85%; height: 75%; }
 }
-
-/* ANIMACIONES DE TEXTO */
-.char { display: inline-block; opacity: 0; transform: scale(0.5); transition: 0.3s; }
-.char.visible { opacity: 1; transform: scale(1); }
-
-/* MÁSCARA TRANSICIÓN */
-.mask-layer {
-    position: absolute; z-index: 101;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: black;
-    transform: translateX(0);
-    transition: transform 1s ease-in-out;
-}
-.mask-layer.hide { transform: translateX(-100%); }
