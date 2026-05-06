@@ -1,79 +1,160 @@
-// OJO: Asegúrate de que aquí las mayúsculas coincidan EXACTAMENTE con tu GitHub
-const rutaCSV = './csv/MasyMas_OFE_Auto(Listado_prod).csv'; 
-const contenedor = document.getElementById('contenedor-productos');
+const config = {
+    rutaCSV: './csv/MasyMas_OFE_Auto(Listado_prod).csv',
+    duracionOferta: 10000,
+    folderAssets: './assets/'
+};
 
-Papa.parse(rutaCSV, {
+let listaOfertas = [];
+let indiceActual = 0;
+
+// Cargar Datos
+Papa.parse(config.rutaCSV, {
     download: true,
     delimiter: ";",
     header: true,
-    skipEmptyLines: true,
-    encoding: "UTF-8", // <--- ¡AQUÍ ESTABA EL ERROR! (Faltaba esta coma)
-    complete: function(resultados) {
-        // ESTO ES MAGIA: Lo imprime en la consola para que podamos investigar
-        console.log("¡CSV leído! Mira los datos aquí:", resultados.data);
-        pintarProductos(resultados.data);
-    },
-    error: function(error) {
-        console.error("Error crítico al leer el CSV:", error);
-        contenedor.innerHTML = '<p style="color:red;">Error al cargar el archivo CSV. Revisa la ruta.</p>';
+    encoding: "UTF-8",
+    complete: (results) => {
+        listaOfertas = results.data.filter(f => f.Descripción || f.Marca);
+        iniciarCiclo();
     }
 });
 
-function pintarProductos(productos) {
-    contenedor.innerHTML = ''; // Limpiamos el mensaje
+async function iniciarCiclo() {
+    if (listaOfertas.length === 0) return;
+    mostrarOferta(listaOfertas[indiceActual]);
+}
 
-    if(productos.length === 0) {
-        contenedor.innerHTML = '<p>No hay productos para mostrar.</p>';
-        return;
+function mostrarOferta(datos) {
+    const videoTrans = document.getElementById('video-transicion');
+    const mask = document.getElementById('mask-transition');
+    const bgMosaico = document.getElementById('bg-mosaico');
+
+    // --- 00:00 a 00:01 - ENTRADA ---
+    videoTrans.src = `${config.folderAssets}cortinilla_entrada.mp4`;
+    videoTrans.play();
+    mask.classList.remove('hide');
+    
+    setTimeout(() => {
+        mask.classList.add('hide'); // Revela pantalla de derecha a izquierda (vía CSS transition)
+    }, 100);
+
+    // Preparar contenido oculto
+    prepararContenido(datos);
+
+    // --- 00:01 - MOSTRAR ELEMENTOS ---
+    setTimeout(() => {
+        // Fondo Mosaico
+        bgMosaico.src = `${config.folderAssets}cortinilla_fondo_mosaico.mp4`;
+        bgMosaico.style.opacity = 1;
+        bgMosaico.play();
+
+        // Panel Cristal
+        document.getElementById('glass-panel').classList.add('show');
+        
+        // Escribir Fecha
+        escribirTexto(document.getElementById('fecha-validez'), datos["Fecha de vigencia"] || "");
+    }, 1000);
+
+    // --- 00:01.5 - SUBIR PRODUCTO ---
+    setTimeout(() => {
+        const prod = document.getElementById('bloque-producto');
+        prod.style.transform = "translateY(0)";
+        prod.style.opacity = "1";
+    }, 1500);
+
+    // --- 00:01.8 - ANIMAR PRECIO ---
+    setTimeout(() => {
+        document.getElementById('caja-precio').classList.add('show');
+        // Animar números interior
+        const entero = document.getElementById('precio-entero');
+        const decimal = document.getElementById('precio-decimal');
+        escribirTexto(entero, entero.innerText, true);
+        escribirTexto(decimal, decimal.innerText, true);
+    }, 1800);
+
+    // --- 00:09 - SALIDA ---
+    setTimeout(() => {
+        videoTrans.src = `${config.folderAssets}cortinilla_salida.mp4`;
+        videoTrans.play();
+        mask.classList.remove('hide');
+    }, 9000);
+
+    // --- 00:10 - SIGUIENTE ---
+    setTimeout(() => {
+        indiceActual = (indiceActual + 1) % listaOfertas.length;
+        resetearAnimaciones();
+        mostrarOferta(listaOfertas[indiceActual]);
+    }, 10000);
+}
+
+function prepararContenido(d) {
+    // 1. Imagen Producto
+    document.getElementById('foto-producto').src = `${config.folderAssets}${d.Artículo}.png`;
+
+    // 2. Precio
+    let precioFull = d.Precio || d.Acumulas || "0,00";
+    let partes = precioFull.replace('€', '').trim().split(',');
+    document.getElementById('precio-entero').innerText = partes[0];
+    document.getElementById('precio-decimal').innerText = partes[1] || "00";
+
+    // 3. Sellos
+    const sellosCont = document.getElementById('contenedor-sellos');
+    sellosCont.innerHTML = '';
+    if (d.Sello) {
+        d.Sello.split(',').forEach(s => {
+            const img = document.createElement('img');
+            img.src = `${config.folderAssets}${s.trim()}.png`;
+            sellosCont.appendChild(img);
+        });
     }
 
-    productos.forEach(producto => {
-        // 1. Sacamos un array con los nombres EXACTOS de las columnas que detecta tu CSV
-        const columnas = Object.keys(producto);
-        
-        // 2. Buscamos las columnas por "trozos" de palabra para no fallar nunca
-        const colDesc = columnas.find(c => c.toLowerCase().includes('escrip'));
-        const colMarca = columnas.find(c => c.toLowerCase().includes('marca'));
-        const colPrecio = columnas.find(c => c.toLowerCase().includes('precio'));
-        const colAcumulas = columnas.find(c => c.toLowerCase().includes('acumula'));
-        const colArticulo = columnas.find(c => c.toLowerCase().includes('art'));
-        const colVigencia = columnas.find(c => c.toLowerCase().includes('vigencia'));
+    // 4. Lógica de Descripción / Marca
+    const descCont = document.getElementById('descripcion-prod');
+    let titulo = "", subtitulo = "";
 
-        // Extraemos la descripción usando la columna real que hemos encontrado
-        const descripcion = colDesc ? producto[colDesc] : null;
-        
-        // Si la fila viene totalmente vacía o sin descripción, la saltamos
-        if (!descripcion || String(descripcion).trim() === '') return;
+    if (d.Marca && d.Marca.trim() !== "") {
+        titulo = d.Marca.toUpperCase();
+        subtitulo = d.Descripción.replace(new RegExp(d.Marca, 'gi'), '').trim();
+    } else {
+        // Si no hay marca, buscamos la parte en mayúsculas de la descripción
+        let palabras = d.Descripción.split(' ');
+        titulo = palabras.filter(p => p === p.toUpperCase() && p.length > 2).join(' ');
+        subtitulo = d.Descripción.replace(titulo, '').trim();
+    }
 
-        // Extraemos el resto de datos
-        const marca = (colMarca && producto[colMarca].trim() !== '') ? producto[colMarca] : "Sin Marca";
-        
-        let precio = (colPrecio && producto[colPrecio].trim() !== '') ? producto[colPrecio] : null;
-        if (!precio) {
-            // Si el precio principal está vacío, probamos en la columna de al lado por si se movió
-            precio = (colAcumulas && producto[colAcumulas].trim() !== '') ? producto[colAcumulas] : "Consultar precio";
+    descCont.innerHTML = `<div class="tit">${titulo}</div><div class="sub">${formatearSubtitulo(subtitulo)}</div>`;
+}
+
+function formatearSubtitulo(txt) {
+    // Máximo 20 caracteres por línea sin cortar palabras
+    let palabras = txt.split(' ');
+    let lineas = [], lineaActual = "";
+    palabras.forEach(p => {
+        if ((lineaActual + p).length > 20) {
+            lineas.push(lineaActual);
+            lineaActual = p + " ";
+        } else {
+            lineaActual += p + " ";
         }
-
-        const articuloId = colArticulo ? producto[colArticulo] : "N/A";
-        const vigencia = colVigencia ? producto[colVigencia] : "Hasta fin de existencias";
-
-        // 3. Pintamos la tarjeta
-        const tarjeta = document.createElement('div');
-        tarjeta.classList.add('tarjeta');
-        tarjeta.innerHTML = `
-            <div>
-                <div class="tarjeta-marca">${marca}</div>
-                <h2 class="tarjeta-titulo">${descripcion}</h2>
-            </div>
-            
-            <div>
-                <div class="tarjeta-precio">${precio}</div>
-                <div class="tarjeta-footer">
-                    <p><strong>Ref:</strong> ${articuloId}</p>
-                    <p class="tarjeta-vigencia">⏳ ${vigencia}</p>
-                </div>
-            </div>
-        `;
-        contenedor.appendChild(tarjeta);
     });
+    lineas.push(lineaActual);
+    return lineas.join('<br>');
+}
+
+function escribirTexto(elemento, texto, conEscala = false) {
+    elemento.innerHTML = '';
+    texto.split('').forEach((char, i) => {
+        const span = document.createElement('span');
+        span.innerText = char;
+        span.className = 'char';
+        elemento.appendChild(span);
+        setTimeout(() => span.classList.add('visible'), i * 50);
+    });
+}
+
+function resetearAnimaciones() {
+    document.getElementById('glass-panel').classList.remove('show');
+    document.getElementById('caja-precio').classList.remove('show');
+    document.getElementById('bloque-producto').style.opacity = "0";
+    document.getElementById('bloque-producto').style.transform = "translateY(100px)";
 }
