@@ -26,32 +26,29 @@ async function iniciarCiclo() {
 
 function mostrarOferta(datos) {
     const videoTrans = document.getElementById('video-transicion');
-    const mask = document.getElementById('mask-transition');
     const bgMosaico = document.getElementById('bg-mosaico');
 
     // --- 00:00 a 00:01 - ENTRADA ---
+    // Ponemos el video de entrada y le decimos que se vaya borrando (wipe-out)
     videoTrans.src = `${config.folderAssets}cortinilla_entrada.mp4`;
+    videoTrans.classList.remove('wipe-in');
+    videoTrans.classList.add('wipe-out');
     videoTrans.play();
-    mask.classList.remove('hide');
-    
-    setTimeout(() => {
-        mask.classList.add('hide'); // Revela pantalla de derecha a izquierda (vía CSS transition)
-    }, 100);
 
-    // Preparar contenido oculto
+    // Preparar contenido oculto mientras el video aún tapa la pantalla
     prepararContenido(datos);
 
-    // --- 00:01 - MOSTRAR ELEMENTOS ---
+    // --- 00:01 - MOSTRAR ELEMENTOS (El video de entrada acaba de desaparecer) ---
     setTimeout(() => {
-        // Fondo Mosaico
+        // Arrancamos el mosaico del fondo
         bgMosaico.src = `${config.folderAssets}cortinilla_fondo_mosaico.mp4`;
         bgMosaico.style.opacity = 1;
         bgMosaico.play();
 
-        // Panel Cristal
+        // Subimos el Panel de Cristal
         document.getElementById('glass-panel').classList.add('show');
         
-        // Escribir Fecha
+        // Escribimos la Fecha
         escribirTexto(document.getElementById('fecha-validez'), datos["Fecha de vigencia"] || "");
     }, 1000);
 
@@ -65,28 +62,31 @@ function mostrarOferta(datos) {
     // --- 00:01.8 - ANIMAR PRECIO ---
     setTimeout(() => {
         document.getElementById('caja-precio').classList.add('show');
-        // Animar números interior
         const entero = document.getElementById('precio-entero');
         const decimal = document.getElementById('precio-decimal');
         escribirTexto(entero, entero.innerText, true);
         escribirTexto(decimal, decimal.innerText, true);
     }, 1800);
 
-    // --- 00:09 - SALIDA ---
+    // --- 00:09 a 00:10 - SALIDA ---
     setTimeout(() => {
+        // Ponemos el video de salida y le decimos que vaya tapando la pantalla (wipe-in)
         videoTrans.src = `${config.folderAssets}cortinilla_salida.mp4`;
+        videoTrans.classList.remove('wipe-out');
+        videoTrans.classList.add('wipe-in');
         videoTrans.play();
-        mask.classList.remove('hide');
     }, 9000);
 
     // --- 00:10 - SIGUIENTE ---
     setTimeout(() => {
         indiceActual = (indiceActual + 1) % listaOfertas.length;
         resetearAnimaciones();
+        
+        // Al volver a llamar a mostrarOferta, el nuevo video de entrada 
+        // reemplazará al de salida, asegurando que siempre hay video en pantalla en la transición.
         mostrarOferta(listaOfertas[indiceActual]);
     }, 10000);
 }
-
 function prepararContenido(d) {
     // 1. Imagen Producto
     document.getElementById('foto-producto').src = `${config.folderAssets}${d.Artículo}.png`;
